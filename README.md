@@ -15,11 +15,11 @@ This repo is a work in progress and is continually updated as I make progress on
 # Documentation
 
 ## 1. Data Pipeline
-  ###a. Web scraping
-  ###b. API's
+  a. Web scraping
+  b. API's
 
 ## 2. Cleaning and Processing
-  ###a. Dealing with missing values
-  ###b. 
+  a. Dealing with missing values
+  b. 
 ## 3. Implementing the Recommender
 
