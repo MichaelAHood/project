@@ -1,4 +1,4 @@
-# project
+# Personalized Real Estate Recommender
 This is my real estate recommendation system that I built for my final project for the Galvanize Data Science Intesive.
 
 In short, the recommender is designed to help a person who is moving from one city to another, find a place to live. 
