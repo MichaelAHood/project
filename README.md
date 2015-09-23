@@ -15,11 +15,10 @@ This repo is a work in progress and is continually updated as I make progress on
 # Documentation
 
 ## 1. Data Pipeline
-###Contains:
-  1. web_scraping.ipynb (Prototype code to scrape address and listing id from zillow, can be used with a proxy.  Need to convert this to a script).
-  2. zillow_api.ipynb (Ipython notebook to query Zillow API, convert the output into a JSON like format for insertion into MongoDB.  Also writes a csv of listings that could not be accessed via Zillow API - which is over half.)
-  3. walkable_api.ipynb (Ipython notebook to query walkable API for addresses, updates MongoDB with the walkscore info for each listing.)
-## 2. Cleaning and Processing
+  1. **web_scraping.ipynb** (Prototype code to scrape address and listing id from zillow, can be used with a proxy.  Need to convert this to a script).
+  2. **zillow_api.ipynb** (Ipython notebook to query Zillow API, convert the output into a JSON like format for insertion into MongoDB.  Also writes a csv of listings that could not be accessed via Zillow API - which is over half.)
+  3. **walkable_api.ipynb** (Ipython notebook to query walkable API for addresses, updates MongoDB with the walkscore info for each listing.)
+##2. Cleaning and Processing
   a. Dealing with missing values
   b. 
 ## 3. Implementing the Recommender
