@@ -31,7 +31,7 @@ class PreProcess(object):
 
     
     def preprocess_df(self):
-        self.df = self.df.drop(['price'], axis=1) #there are too many NA values for price for it ot be useful
+        self.df = self.df.drop(['numrooms', 'price'], axis=1) #there are too many NA values for price for it ot be useful
         self.df = self.df.dropna(axis=0, how='any')
         # remove 'None' values in trans_score
         indices = self.df[self.df['trans_score'].isin(['None'])].index
@@ -63,9 +63,10 @@ class PreProcess(object):
             max_val = self.df[column].max()
             self.df[column] = self.df[column].apply(self.normalize_num, args=(min_val, max_val))
         return self.df
+        
 
-
-    def filter_df(df, metric):
+    def filter_df(self, metric):
+        
         """
         Input: takes a dataframe, and the name of a similarity metric as a string
         Output: the cleaned and filtered df for the appropraite metric
@@ -73,13 +74,13 @@ class PreProcess(object):
         Notes: this function is meant to trim the dataframe to use only the 
         columns that are relevant to a given similarity metric.  
         """
-
-    def filter_df(df, metric):
-        
         if metric == "walk_distance":
-            df = df[['trans_score', 'walkscore_score']].dropna(axis=0, how='any')
-            return df.astype(int)
+            self.df = self.df[['trans_score', 'walkscore_score']].dropna(axis=0, how='any')
+            return self.df.astype(float)
                 
         if metric == "space_distance":
-            df = df[['bathrooms', 'bedrooms', 'finishedsqft']].dropna(axis=0, how='any')
-            return df.astype(float)
+            self.df = self.df[['bathrooms', 'bedrooms', 'finishedsqft']].dropna(axis=0, how='any')
+            return self.df.astype(float)
+
+
+
