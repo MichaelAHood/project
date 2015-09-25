@@ -7,9 +7,9 @@ class PreProcess(object):
         self.df = df
         self.dropped_columns_ = ['_id', 'city', 'latitude', 'longitude', 'state', 'street', 
                                  'zipcode', 'appliances', 'architecture', 'basement', 'coolingsystem',
-                                 'coveredparkingspaces', 'exteriormaterial', 'floorcovering',
+                                 'exteriormaterial', 'floorcovering',
                                  'floornumber', 'heatingsources', 'heatingsystem', 'lotsizesqft', 
-                                 'numfloors', 'numunits', 'parkingtype', 'roof', 'rooms', 'view', 
+                                 'numfloors', 'numunits', 'roof', 'rooms', 'view', 
                                  'yearupdated', 'elementaryschool', 'highschool', 'homedescription', 
                                  'images_count', 'images_image', 'links_homedetails', 'links_homeinfo', 
                                  'links_photogallery', 'middleschool', 'neighborhood', 'pageviewcount_currentmonth',
@@ -20,7 +20,7 @@ class PreProcess(object):
     def drop_columns(self):
         """
         
-        Notes: this function will drop all of the columns from a dataframe that are note
+        Notes: this function will drop all of the columns from a dataframe that are not
         needed for computation of any of the similarity metrics. For example, 'heatingsources'
         is not currently used in any of the similarity metrics, so it is dropped.
 
@@ -38,7 +38,7 @@ class PreProcess(object):
         self.df = self.df[~(self.df.index.isin(indices))]
         indices = self.df[self.df['walkscore_score'].isin(['None'])].index
         self.df = self.df[~(self.df.index.isin(indices))]
-        # cast and ints
+        # cast as ints
         self.df[['trans_score', 'walkscore_score']] = self.df[['trans_score', 'walkscore_score']].astype(int) 
         # remove the rows that are absurdly big and are probably mistakes
         self.df = self.df[self.df.bedrooms <= 20]
@@ -64,6 +64,48 @@ class PreProcess(object):
             self.df[column] = self.df[column].apply(self.normalize_num, args=(min_val, max_val))
         return self.df
         
+    def create_parking_index(self):
+        """
+        Input: a dataframe
+        Output: a dateframe
+        Notes: this function will take the uncleaned columns of parkingtype and coveredparkingspaces and
+        apply score_parking to return a column that is a numerical index of parking quality for a listing
+        """
+
+        cols = ['parkingtype', 'coveredparkingspaces']
+        self.df[cols] = self.df[cols].fillna('None')
+        
+        # score_parking is created and called within the scope of create_parking_index
+        def score_parking(parkingtype, coveredparkingspaces):
+            type_score = 0
+            space_score = 0
+            if parkingtype != "None":
+                if "Garage - Attached" in parkingtype:
+                    type_score += 0.5
+                elif "Garage - Detached" in parkingtype:
+                    type_score += 0.4
+                elif "Carport" in parkingtype:
+                    type_score += 0.3
+                elif "Off-street" in parkingtype:
+                    type_score += 0.2
+                elif "On-street" in parkingtype:
+                    type_score += 0.1
+            else:
+                type_score = 0
+            if coveredparkingspaces != "None":
+                if coveredparkingspaces >= 5:
+                    space_score += 0.5
+                else:
+                    space_score += coveredparkingspaces * 0.1
+            else:
+                space_score = 0
+            return type_score + space_score
+        
+        self.df['parking_index'] = self.df[cols].apply(lambda x: score_parking(x[cols[0]], x[cols[1]]), axis=1)
+        self.df = self.df.drop(cols, axis=1) # drop the unnecessary columns
+        
+
+
 
     def filter_df(self, metric):
         
@@ -81,6 +123,10 @@ class PreProcess(object):
         if metric == "space_distance":
             self.df = self.df[['bathrooms', 'bedrooms', 'finishedsqft']].dropna(axis=0, how='any')
             return self.df.astype(float)
+
+        if metric == "family_distance":
+            self.df = self.df[['bedrooms', 'yearbuilt', 'lotsizesqft', 'parking_index', 'school_index']]
+            return self.df
 
 
 

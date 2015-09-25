@@ -3,11 +3,10 @@ import numpy as np
 from sklearn.metrics.pairwise import pairwise_distances
 from scipy.spatial.distance import cosine
 from scipy.stats import beta
-from metrics import space_distance, walk_distance
 from pre_processing import PreProcess
 import re
 import sys
-import pdb
+
 
 class LearnPreferences(object):
     
@@ -106,14 +105,13 @@ class LearnPreferences(object):
         return metrics 
 
     
-
     def get_user_choice(self):
         
         """
         Input: a dataframe for each of the cities
 
         Output: the recommendation corresponding to the user choice 
-        """
+        """==
         
         sample_metrics = self.choose_models()
         recommendations = []
