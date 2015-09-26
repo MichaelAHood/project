@@ -6,6 +6,11 @@ from scipy.stats import beta
 from pre_processing import PreProcess
 import re
 import sys
+import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set(color_codes=True)
+
 
 
 class LearnPreferences(object):
@@ -14,7 +19,7 @@ class LearnPreferences(object):
     Implements a multi-armed bayeseian bandit to learn a users preferences in houses.
     """
 
-    def __init__(self, df1, df2, df1_raw, df2_raw, metrics, ref_listing, num_matches=1):
+    def __init__(self, df1, df2, df1_raw, df2_raw, ref_listing, num_matches=1):
         """
         Input: two pre-processed dataframe obejcts, list of metrics (e.g. 'walk_distance', 'space_distance'),
         the integer index of the reference listing, the number of matches to return per metric,
@@ -31,18 +36,21 @@ class LearnPreferences(object):
         self.recommendations = None
         self.recommendation_history = {}
         self.pairs_served = 0
-        self.metrics = metrics
+        self.metrics = ['walk_distance', 'space_distance', 'family_distance']
         self.scores = {}
+        self.params = {}
+        self.init_scores_and_params() # populates self.scores with a zero for each of the different distance metrics
         self.listings_served = set()
         #self.listing_details = pd.read_csv('df_sf_ref.csv', index_col=0) # this df contains the untransformed listing data
         self.sim_mat = self.update_similarity_matrix('cosine')
-        self.init_scores() # populates self.scores with a zero for each of the different distance metrics
-
+        
     
-    def init_scores(self): 
+    def init_scores_and_params(self): 
         for metric in self.metrics:
             if metric not in self.scores:
                 self.scores[metric] = 0
+            if metric not in self.params:
+                self.params[metric] = (0, 0)
 
 
     def update_similarity_matrix(self, distance_metric):
@@ -111,7 +119,7 @@ class LearnPreferences(object):
         Input: a dataframe for each of the cities
 
         Output: the recommendation corresponding to the user choice 
-        """==
+        """
         
         sample_metrics = self.choose_models()
         recommendations = []
@@ -142,18 +150,37 @@ class LearnPreferences(object):
                                                           'winner': winner}
   
     def guess_preferences(self):
-
+        """
+        Input: no inputs
+        Output: no outputs
+        Notes: this function will take the updated score for each metric, compute a 
+        beta distribution defined by the win/loss scores, sample from each distribution
+        and return the metric that corresponds to the greatest probability. The winning
+        metric is added to recommendation_history as the best guess of user preference.
+        """
         user_preference = None
         max_prob = 0
         for metric in self.metrics:
-            prob = beta.rvs(self.scores[metric] + 1, self.pairs_served - self.scores[metric] + 1) # sample form the dist for each metric
+            self.params[metric] = (self.scores[metric] + 1, self.pairs_served - self.scores[metric] + 1)
+            prob = beta.rvs(self.params[metric][0] + 1, self.params[metric][1] + 1) # sample form the dist for each metric
             if prob > max_prob:
                 max_prob = prob
                 user_preference = metric
         self.recommendation_history[self.pairs_served]['estimated_user_preference'] = user_preference
         
-    
+    def generate_images(self):
+        fig = plt.figure()
+        for metric in self.metrics:
+            x = beta(self.params[metric][0] + 1, self.params[metric][1] + 1).rvs(size=1000)
+            sns.kdeplot(x, shade=True, label=metric)
+            fig.suptitle("Liklihood that you belong to a segment", fontsize=20)
+            # plt.legend(fontsize=16, loc='upper left')
+            # plt.ylabel('Likelihood', fontsize=16)
+            # plt.xlabel('Choice Preference', fontsize=16)
+        plt.savefig("prob_dist.png", dpi=600)
 
+        
+        print "saving plot..."
 
 
 

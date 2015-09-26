@@ -5,17 +5,20 @@ class PreProcess(object):
 
     def __init__(self, df):
         self.df = df
-        self.dropped_columns_ = ['_id', 'city', 'latitude', 'longitude', 'state', 'street', 
-                                 'zipcode', 'appliances', 'architecture', 'basement', 'coolingsystem',
-                                 'exteriormaterial', 'floorcovering',
-                                 'floornumber', 'heatingsources', 'heatingsystem', 'lotsizesqft', 
-                                 'numfloors', 'numunits', 'roof', 'rooms', 'view', 
-                                 'yearupdated', 'elementaryschool', 'highschool', 'homedescription', 
-                                 'images_count', 'images_image', 'links_homedetails', 'links_homeinfo', 
-                                 'links_photogallery', 'middleschool', 'neighborhood', 'pageviewcount_currentmonth',
-                                 'pageviewcount_total', 'agentname' ,'agentprofileurl', 'externalurl', 
-                                 'lastupdateddate', 'mls', 'openhousedates', 'status', 'schooldistrict', 
-                                 'usecode', 'type', 'trans_desc', 'trans_summary', 'walkscore_desc', 'whatownerloves', 'zpid']
+        self.dropped_columns_ = ['_id', 'city', 'latitude', 'longitude', 'state', 
+                                'street', 'zipcode', 'appliances', 'architecture', 
+                                'basement', 'coolingsystem', 'exteriormaterial', 
+                                'floorcovering', 'floornumber', 'heatingsources', 
+                                'heatingsystem', 'numfloors', 'numunits', 'roof', 
+                                'rooms', 'view', 'yearupdated', 'elementaryschool', 
+                                'highschool', 'homedescription', 'images_count', 
+                                'images_image', 'links_homedetails', 'links_homeinfo', 
+                                'links_photogallery', 'middleschool', 'neighborhood', 
+                                'pageviewcount_currentmonth', 'pageviewcount_total', 
+                                'agentname' ,'agentprofileurl', 'externalurl', 
+                                'lastupdateddate', 'mls', 'openhousedates', 'status', 
+                                'schooldistrict', 'usecode', 'type', 'trans_desc', 
+                                'trans_summary', 'walkscore_desc', 'whatownerloves', 'zpid']
 
     def drop_columns(self):
         """
@@ -25,9 +28,7 @@ class PreProcess(object):
         is not currently used in any of the similarity metrics, so it is dropped.
 
         """
-
         self.df = self.df.drop(self.dropped_columns_, axis=1)
-        return self.df
 
     
     def preprocess_df(self):
@@ -44,8 +45,7 @@ class PreProcess(object):
         self.df = self.df[self.df.bedrooms <= 20]
         self.df = self.df[self.df.bathrooms <= 20]
         self.df[['bathrooms', 'bedrooms', 'finishedsqft']] = self.df[['bathrooms', 'bedrooms', 'finishedsqft']].astype(float)
-        return self.df
-
+        
     
     def normalize_num(self, x, col_min, col_max):
         """
@@ -54,15 +54,17 @@ class PreProcess(object):
         return float((x - col_min)) / (col_max - col_min)
 
     
-    def normalize_columns(self):
+    def normalize_columns(self, columns):
         """
-        Attempt to normalize all of the columns
+        Input: a list of columns to normalize
+        Output: a dataframe that has normalized the columns between 0 and 1
         """
-        for column in self.df.columns:
-            min_val = self.df[column].min()
-            max_val = self.df[column].max()
-            self.df[column] = self.df[column].apply(self.normalize_num, args=(min_val, max_val))
-        return self.df
+        
+        for col in columns:
+            min_val = self.df[col].min()
+            max_val = self.df[col].max()
+            self.df[col] = self.df[col].apply(self.normalize_num, args=(min_val, max_val))
+        
         
     def create_parking_index(self):
         """
